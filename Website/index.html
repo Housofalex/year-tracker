@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Year Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  /* Theme: only --bg and --fg change. Everything else is mixed from them. */
+  :root {
+    --bg: #000000;
+    --fg: #ffffff;
+    --dim: color-mix(in srgb, var(--fg) 45%, var(--bg));
+    --line: color-mix(in srgb, var(--fg) 18%, var(--bg));
+    --faint: color-mix(in srgb, var(--fg) 9%, var(--bg));
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--fg); }
+  body {
+    font-family: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    transition: background 0.3s, color 0.3s;
+  }
+  button, input { font: inherit; color: inherit; }
+  main { max-width: 720px; margin: 0 auto; padding: 48px 24px 64px; }
+
+  header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 72px; }
+  h1, .year { font-size: 15px; font-weight: 400; }
+  .right { display: flex; gap: 20px; align-items: baseline; }
+  .year { color: var(--dim); font-variant-numeric: tabular-nums; }
+  .link { background: none; border: 0; cursor: pointer; font-size: 15px; color: var(--dim); }
+  .link:hover { color: var(--fg); }
+  .link:disabled { opacity: 0.35; cursor: default; }
+
+  .date { font-size: clamp(32px, 7vw, 48px); font-weight: 300; letter-spacing: -0.02em; line-height: 1.1; }
+  .sub { display: flex; gap: 16px; align-items: baseline; color: var(--dim); font-size: 14px; margin-top: 10px; }
+  .back { background: none; border: 0; color: var(--fg); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+  .habits { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin: 32px 0 96px; }
+  .habit {
+    background: none; border: 1px solid var(--line); border-radius: 2px;
+    font-size: 14px; text-align: left; padding: 16px 14px;
+    display: flex; flex-direction: column; gap: 24px; cursor: pointer;
+    transition: border-color 0.2s; overflow-wrap: anywhere;
+  }
+  .habit:hover { border-color: var(--dim); }
+  .box { width: 22px; height: 22px; border: 1px solid var(--dim); position: relative; }
+  .habit[aria-pressed="true"] .box { background: var(--fg); border-color: var(--fg); }
+  .habit[aria-pressed="true"] .box::before,
+  .habit[aria-pressed="true"] .box::after {
+    content: ""; position: absolute; left: 50%; top: 50%; width: 14px; height: 1.5px;
+    background: var(--bg); transform: translate(-50%, -50%) rotate(45deg);
+  }
+  .habit[aria-pressed="true"] .box::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+  .grid {
+    --cols: 2;
+    display: grid; grid-template-columns: 18px repeat(12, 1fr); gap: 4px 6px;
+    font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums;
+  }
+  .mh, .tot { text-align: center; }
+  .mh { padding-bottom: 6px; }
+  .tot { padding-top: 10px; }
+  .dn { text-align: right; padding-right: 2px; align-self: center; }
+  .cell {
+    aspect-ratio: 1; display: grid; gap: 2px; padding: 2px;
+    grid-template-columns: repeat(var(--cols), 1fr);
+    grid-template-rows: repeat(var(--cols), 1fr);
+    background: none; border: 0; cursor: pointer; border-radius: 1px;
+  }
+  .cell span { background: var(--faint); border-radius: 1px; }
+  .cell span.on { background: var(--fg); }
+  .cell.future { opacity: 0.35; cursor: default; }
+  .cell.today { outline: 1px solid var(--dim); }
+  .cell.sel { outline: 1px solid var(--fg); }
+  .cell.void { visibility: hidden; }
+
+  .legend { margin-top: 40px; font-size: 13px; color: var(--dim); line-height: 1.6; }
+  footer { margin-top: 8px; font-size: 13px; color: var(--dim); }
+
+  /* Settings */
+  dialog {
+    margin: auto; width: min(440px, calc(100% - 32px)); max-height: calc(100% - 48px);
+    background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 2px;
+    padding: 32px 28px;
+  }
+  dialog::backdrop { background: color-mix(in srgb, var(--bg) 70%, transparent); }
+  dialog h2 { font-size: 15px; font-weight: 400; margin-bottom: 16px; }
+  dialog h2 + * { margin-top: 0; }
+  .group + .group { margin-top: 40px; }
+  .row { display: flex; gap: 16px; align-items: center; }
+  .row input {
+    flex: 1; min-width: 0; background: none; border: 0; border-bottom: 1px solid var(--line);
+    padding: 10px 0; font-size: 15px; border-radius: 0;
+  }
+  .row input:focus { outline: none; border-bottom-color: var(--fg); }
+  .row .link { font-size: 13px; }
+  .hint { font-size: 13px; color: var(--dim); margin-top: 12px; line-height: 1.5; }
+  .add { margin-top: 16px; }
+  .themes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .theme {
+    background: none; border: 1px solid var(--line); border-radius: 2px; cursor: pointer;
+    padding: 10px; display: flex; flex-direction: column; gap: 10px; font-size: 13px; text-align: left;
+  }
+  .theme[aria-pressed="true"] { border-color: var(--fg); }
+  .swatch { width: 100%; aspect-ratio: 2; border: 1px solid var(--line); display: grid; place-items: center; }
+  .swatch::after { content: ""; width: 10px; height: 10px; background: currentColor; }
+  .custom { display: flex; gap: 24px; margin-top: 16px; font-size: 13px; color: var(--dim); }
+  .custom label { display: flex; gap: 10px; align-items: center; cursor: pointer; }
+  .custom input { width: 28px; height: 28px; border: 1px solid var(--line); background: none; padding: 0; cursor: pointer; }
+  .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; }
+  .done { background: var(--fg); color: var(--bg); border: 0; border-radius: 2px; padding: 10px 20px; font-size: 14px; cursor: pointer; }
+
+  :focus-visible { outline: 1px solid var(--fg); outline-offset: 2px; }
+
+  @media (max-width: 520px) {
+    main { padding: 32px 16px 48px; }
+    header { margin-bottom: 48px; }
+    .habits { grid-template-columns: repeat(2, 1fr); margin-bottom: 64px; }
+    .grid { gap: 3px 3px; grid-template-columns: 16px repeat(12, 1fr); }
+    .cell { gap: 1px; padding: 1px; }
+    .themes { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Year Tracker</h1>
+    <div class="right">
+      <span class="year" id="year"></span>
+      <button class="link" id="open-settings">Settings</button>
+    </div>
+  </header>
+
+  <section aria-label="Selected day">
+    <p class="date" id="date"></p>
+    <div class="sub"><span id="count"></span><button class="back" id="back" hidden>Back to today</button></div>
+    <div class="habits" id="habits"></div>
+  </section>
+
+  <section aria-label="Whole year">
+    <div class="grid" id="grid"></div>
+    <p class="legend" id="legend"></p>
+    <footer>Saved on this device.</footer>
+  </section>
+</main>
+
+<dialog id="settings" aria-label="Settings">
+  <div class="group">
+    <h2>Habits</h2>
+    <div id="habit-list"></div>
+    <button class="link add" id="add-habit">Add habit</button>
+    <p class="hint">Renaming keeps your history. Up to 9 habits.</p>
+  </div>
+  <div class="group">
+    <h2>Theme</h2>
+    <div class="themes" id="themes"></div>
+    <div class="custom">
+      <label>Background <input type="color" id="custom-bg"></label>
+      <label>Text <input type="color" id="custom-fg"></label>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="link" id="reset-theme">Reset theme</button>
+    <button class="done" id="close-settings">Done</button>
+  </div>
+</dialog>
+
+<script>
+  const DEFAULT_HABITS = [
+    { id: "trading", label: "Trading" },
+    { id: "reading", label: "Reading" },
+    { id: "workout", label: "Workout" },
+    { id: "study",   label: "Study" },
+  ];
+  const THEMES = [
+    { name: "Black",    bg: "#000000", fg: "#ffffff" },
+    { name: "White",    bg: "#ffffff", fg: "#000000" },
+    { name: "Graphite", bg: "#1c1c1e", fg: "#e8e8e6" },
+    { name: "Navy",     bg: "#0a1424", fg: "#e6ecf5" },
+  ];
+  const MAX_HABITS = 9;
+  const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const DATA_KEY = "year-tracker-v1";
+  const SETTINGS_KEY = "year-tracker-settings-v1";
+
+  // ---------- Storage ----------
+  const load = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch (e) { return fallback; } };
+  const store = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} };
+
+  // data looks like: { "2026-11-07": ["trading", "study"] }
+  let data = load(DATA_KEY, {});
+  let settings = load(SETTINGS_KEY, null) || {};
+  if (!Array.isArray(settings.habits) || !settings.habits.length) settings.habits = DEFAULT_HABITS.map((h) => ({ ...h }));
+  if (!settings.theme) settings.theme = { bg: THEMES[0].bg, fg: THEMES[0].fg };
+
+  const saveData = () => store(DATA_KEY, data);
+  const saveSettings = () => store(SETTINGS_KEY, settings);
+
+  // ---------- Helpers ----------
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls) => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
+  const keyOf = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const fmt = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" });
+  const habitIds = () => settings.habits.map((h) => h.id);
+  const doneOn = (k) => (data[k] || []).filter((id) => habitIds().includes(id));
+  const boxCols = () => (settings.habits.length <= 1 ? 1 : settings.habits.length <= 4 ? 2 : 3);
+
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const YEAR = today.getFullYear();
+  let selected = new Date(today);
+
+  // ---------- Theme ----------
+  function isLight(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    return 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255) > 150;
+  }
+  function applyTheme() {
+    const { bg, fg } = settings.theme;
+    const root = document.documentElement;
+    root.style.setProperty("--bg", bg);
+    root.style.setProperty("--fg", fg);
+    root.style.colorScheme = isLight(bg) ? "light" : "dark";
+    document.querySelector('meta[name="theme-color"]').content = bg;
+  }
+  function setTheme(bg, fg) {
+    settings.theme = { bg, fg };
+    saveSettings();
+    applyTheme();
+    renderThemes();
+  }
+
+  // ---------- Tracker ----------
+  function toggle(id) {
+    const k = keyOf(selected);
+    const set = new Set(data[k] || []);
+    set.has(id) ? set.delete(id) : set.add(id);
+    if (set.size) data[k] = [...set]; else delete data[k];
+    saveData();
+    render();
+  }
+
+  function renderDay() {
+    const k = keyOf(selected);
+    const isToday = k === keyOf(today);
+    const n = doneOn(k).length;
+    const total = settings.habits.length;
+    $("date").textContent = isToday ? "Today" : fmt.format(selected);
+    $("count").textContent = isToday ? `${fmt.format(selected)}, ${n} of ${total} done` : `${n} of ${total} done`;
+    $("back").hidden = isToday;
+
+    const wrap = $("habits");
+    wrap.innerHTML = "";
+    settings.habits.forEach((h) => {
+      const b = el("button", "habit");
+      b.setAttribute("aria-pressed", doneOn(k).includes(h.id));
+      const box = el("span", "box"); box.setAttribute("aria-hidden", "true");
+      const label = el("span"); label.textContent = h.label;
+      b.append(box, label);
+      b.addEventListener("click", () => toggle(h.id));
+      wrap.append(b);
+    });
+  }
+
+  function renderGrid() {
+    const g = $("grid");
+    g.innerHTML = "";
+    g.style.setProperty("--cols", boxCols());
+    g.append(el("span"));
+    MONTHS.forEach((m) => { const s = el("span", "mh"); s.textContent = m[0]; s.title = m; g.append(s); });
+
+    const totals = Array(12).fill(0);
+    for (let d = 1; d <= 31; d++) {
+      const dn = el("span", "dn"); dn.textContent = d; g.append(dn);
+      for (let m = 0; m < 12; m++) {
+        const date = new Date(YEAR, m, d);
+        if (date.getMonth() !== m) { g.append(el("span", "cell void")); continue; }
+        const k = keyOf(date);
+        const done = doneOn(k);
+        totals[m] += done.length;
+
+        const b = el("button", "cell");
+        if (date > today) { b.classList.add("future"); b.disabled = true; }
+        if (k === keyOf(today)) b.classList.add("today");
+        if (k === keyOf(selected)) b.classList.add("sel");
+        b.setAttribute("aria-label", `${fmt.format(date)}, ${done.length} of ${settings.habits.length} done`);
+        settings.habits.forEach((h) => b.append(el("span", done.includes(h.id) ? "on" : "")));
+        b.addEventListener("click", () => { selected = date; render(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+        g.append(b);
+      }
+    }
+    g.append(el("span"));
+    totals.forEach((t) => { const s = el("span", "tot"); s.textContent = t || ""; g.append(s); });
+
+    const names = settings.habits.map((h) => h.label);
+    $("legend").innerHTML = "";
+    $("legend").append(
+      `One box per habit, left to right: ${names.join(", ")}.`,
+      el("br"),
+      "Tap a past day to fix it."
+    );
+  }
+
+  function render() { renderDay(); renderGrid(); }
+
+  // ---------- Settings ----------
+  function renderHabitList() {
+    const list = $("habit-list");
+    list.innerHTML = "";
+    settings.habits.forEach((h, i) => {
+      const row = el("div", "row");
+      const input = el("input");
+      input.value = h.label;
+      input.maxLength = 24;
+      input.setAttribute("aria-label", `Habit ${i + 1} name`);
+      input.addEventListener("input", () => { h.label = input.value.trim() || "Untitled"; saveSettings(); render(); });
+      const remove = el("button", "link");
+      remove.textContent = "Remove";
+      remove.disabled = settings.habits.length <= 1;
+      remove.addEventListener("click", () => { settings.habits.splice(i, 1); saveSettings(); renderHabitList(); render(); });
+      row.append(input, remove);
+      list.append(row);
+    });
+    $("add-habit").disabled = settings.habits.length >= MAX_HABITS;
+  }
+
+  function renderThemes() {
+    const wrap = $("themes");
+    wrap.innerHTML = "";
+    THEMES.forEach((t) => {
+      const b = el("button", "theme");
+      b.setAttribute("aria-pressed", t.bg === settings.theme.bg && t.fg === settings.theme.fg);
+      const sw = el("span", "swatch");
+      sw.style.background = t.bg;
+      sw.style.color = t.fg;
+      const name = el("span"); name.textContent = t.name;
+      b.append(sw, name);
+      b.addEventListener("click", () => setTheme(t.bg, t.fg));
+      wrap.append(b);
+    });
+    $("custom-bg").value = settings.theme.bg;
+    $("custom-fg").value = settings.theme.fg;
+  }
+
+  $("add-habit").addEventListener("click", () => {
+    settings.habits.push({ id: "h" + Date.now().toString(36), label: "New habit" });
+    saveSettings(); renderHabitList(); render();
+    const inputs = $("habit-list").querySelectorAll("input");
+    inputs[inputs.length - 1].select();
+  });
+  $("custom-bg").addEventListener("input", (e) => setTheme(e.target.value, settings.theme.fg));
+  $("custom-fg").addEventListener("input", (e) => setTheme(settings.theme.bg, e.target.value));
+  $("reset-theme").addEventListener("click", () => setTheme(THEMES[0].bg, THEMES[0].fg));
+  $("open-settings").addEventListener("click", () => { renderHabitList(); renderThemes(); $("settings").showModal(); });
+  $("close-settings").addEventListener("click", () => $("settings").close());
+  $("back").addEventListener("click", () => { selected = new Date(today); render(); });
+
+  // ---------- Start ----------
+  $("year").textContent = YEAR;
+  applyTheme();
+  render();
+</script>
+</body>
+</html>
