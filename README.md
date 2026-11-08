@@ -1,17 +1,33 @@
 # Year Tracker
 
-A simple black-and-white tracker for the whole year. Every day has one box per habit. Default habits: trading, reading, workout, study.
+A minimalist habit tracker for the whole year. One box per day, no noise.
 
-## How to use
+## Idea
 
-Open `Website/index.html` in your browser. Tap a habit to mark it done. Tap a past day in the grid to fix it. Open Settings to change your habits or the theme.
+Most habit apps are loud: streaks, badges, notifications.
+Year Tracker is the opposite: black and white, a full-year grid, and an × for every day you show up.
 
-Your data is saved in your browser on this device.
+## Features
 
-## Plan
+- Full-year view: 12 months × 31 days
+- Track up to 4 habits per day (e.g. reading, workout, study, work)
+- Impossible days (like Feb 30) are greyed out
+- Ultra-minimal black/white design
 
-- [x] Day 1: today's habits + full year grid
-- [x] Day 2: custom habits + themes (black is default)
-- [ ] Put it online with GitHub Pages
-- [ ] Make it installable as a phone app
-- [ ] Streaks and monthly stats
+## Status
+
+🚧 Early development. Built one step a day.
+
+## Roadmap
+
+- [ ] Custom habits
+- [ ] Save progress
+- [ ] Mobile app version
+
+## Getting started
+
+```bash
+git clone https://github.com/YOUR-USERNAME/year-tracker.git
+cd year-tracker
+```
+Open `index.html` in your browser.
