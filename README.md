@@ -10,9 +10,19 @@ Year Tracker is the opposite: black and white, a full-year grid, and an × for e
 ## Features
 
 - Full-year view: 12 months × 31 days
-- Track up to 4 habits per day (e.g. reading, workout, study, work)
-- Impossible days (like Feb 30) are greyed out
-- Ultra-minimal black/white design
+- Track up to 9 habits per day (default: Trading, Reading, Workout, Study)
+- Rename, add or remove habits in Settings (renaming keeps your history)
+- Tap a past day to fix it
+- Impossible days (like Feb 30) are hidden
+- Monthly totals under each month
+- 4 themes (Black, White, Graphite, Navy) or your own colors
+- Progress is saved on your device (no account needed)
+
+## How to use
+
+1. Open `Website/index.html` in your browser.
+2. Tap a habit to mark today as done.
+3. Open Settings to change habits or the theme.
 
 ## Status
 
@@ -20,6 +30,7 @@ Year Tracker is the opposite: black and white, a full-year grid, and an × for e
 
 ## Roadmap
 
-- [ ] Custom habits
-- [ ] Save progress
+- [x] Custom habits
+- [x] Save progress
+- [x] Themes
 - [ ] Mobile app version
