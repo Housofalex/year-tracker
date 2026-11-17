@@ -55,7 +55,7 @@
   }
   .year-btn[aria-expanded="true"] .chev { transform: translateY(1px) rotate(-135deg); }
   .year-menu {
-    position: absolute; top: calc(100% + 12px); right: -10px; z-index: 10;
+    position: absolute; top: calc(100% + 12px); right: -10px; z-index: 30;
     min-width: 96px; padding: 6px;
     display: flex; flex-direction: column;
     background: var(--bg); border: 1px solid var(--line); border-radius: 2px;
@@ -76,8 +76,20 @@
   .year-opt[aria-selected="true"] { color: var(--fg); }
 
   .date { font-size: clamp(32px, 7vw, 48px); font-weight: 300; letter-spacing: -0.02em; line-height: 1.1; }
-  .sub { display: flex; gap: 16px; align-items: baseline; color: var(--dim); font-size: 14px; margin-top: 10px; }
+  .sub { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; color: var(--dim); font-size: 14px; margin-top: 10px; }
   .back { background: none; border: 0; color: var(--fg); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+  /* Streak */
+  .streak { white-space: nowrap; color: var(--fg); font-variant-numeric: tabular-nums; }
+  .streak.out { color: var(--dim); }
+  .streak.out .fl { filter: grayscale(1); opacity: 0.5; }
+  .fl { display: inline-block; }
+  .fl.pop { animation: pop 0.45s ease; }
+  @keyframes pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+  }
 
   .habits { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin: 32px 0 96px; }
   .habit {
@@ -107,6 +119,7 @@
   .mh { padding-bottom: 6px; }
   .tot { padding-top: 10px; }
   .dn { text-align: right; padding-right: 2px; align-self: center; }
+  .mh.now, .dn.now { color: var(--fg); font-weight: 400; }
   .cell {
     aspect-ratio: 1; display: grid; gap: 2px; padding: 2px;
     grid-template-columns: repeat(var(--cols), 1fr);
@@ -116,12 +129,66 @@
   .cell span { background: var(--faint); border-radius: 1px; }
   .cell span.on { background: var(--fg); }
   .cell.future { opacity: 0.35; cursor: default; }
-  .cell.today { outline: 1px solid var(--dim); }
-  .cell.sel { outline: 1px solid var(--fg); }
+  .cell.sel { outline: 1px solid var(--dim); }
+  .cell.today { outline: 2px solid var(--fg); outline-offset: 1px; }
   .cell.void { visibility: hidden; }
 
   .legend { margin-top: 40px; font-size: 13px; color: var(--dim); line-height: 1.6; }
   footer { margin-top: 8px; font-size: 13px; color: var(--dim); }
+
+  /* Quick bar: appears when the big habit buttons are scrolled away */
+  .quick {
+    position: fixed; z-index: 20; background: var(--bg);
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s linear 0.25s;
+  }
+  .quick.show {
+    opacity: 1; visibility: visible; pointer-events: auto; transform: none;
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s;
+  }
+  .q-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 13px; }
+  .q-day { color: var(--fg); font-weight: 400; }
+  .q-list { display: flex; gap: 6px; }
+  .q-item {
+    background: none; border: 1px solid var(--line); border-radius: 2px; cursor: pointer;
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+    font-size: 13px; text-align: left; white-space: nowrap;
+    transition: border-color 0.2s;
+  }
+  .q-item:hover { border-color: var(--dim); }
+  .q-box { width: 14px; height: 14px; flex: none; border: 1px solid var(--dim); position: relative; }
+  .q-item[aria-pressed="true"] .q-box { background: var(--fg); border-color: var(--fg); }
+  .q-item[aria-pressed="true"] .q-box::before,
+  .q-item[aria-pressed="true"] .q-box::after {
+    content: ""; position: absolute; left: 50%; top: 50%; width: 9px; height: 1.5px;
+    background: var(--bg); transform: translate(-50%, -50%) rotate(45deg);
+  }
+  .q-item[aria-pressed="true"] .q-box::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+  /* Top bar on phones and smaller windows */
+  @media (max-width: 1199px) {
+    .quick {
+      top: 0; left: 0; right: 0;
+      padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
+      border-bottom: 1px solid var(--line);
+      display: flex; flex-direction: column; gap: 10px;
+      transform: translateY(-100%);
+    }
+    .q-head, .q-list { width: 100%; max-width: 672px; margin: 0 auto; }
+    .q-list { overflow-x: auto; scrollbar-width: none; }
+    .q-list::-webkit-scrollbar { display: none; }
+  }
+  /* Side panel on wide screens */
+  @media (min-width: 1200px) {
+    .quick {
+      top: 48px; left: calc(50% + 384px); width: 200px;
+      display: flex; flex-direction: column; gap: 16px;
+      transform: translateX(8px);
+    }
+    .q-head { flex-direction: column; gap: 4px; }
+    .q-list { flex-direction: column; }
+    .q-item { white-space: normal; overflow-wrap: anywhere; }
+  }
 
   /* Settings */
   dialog {
@@ -166,7 +233,7 @@
     .cell { gap: 1px; padding: 1px; }
     .themes { grid-template-columns: repeat(2, 1fr); }
   }
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
@@ -186,7 +253,11 @@
 
   <section aria-label="Selected day">
     <p class="date" id="date"></p>
-    <div class="sub"><span id="count"></span><button class="back" id="back" hidden>Back to today</button></div>
+    <div class="sub">
+      <span id="count"></span>
+      <span class="streak" id="streak"></span>
+      <button class="back" id="back" hidden>Back to today</button>
+    </div>
     <div class="habits" id="habits"></div>
   </section>
 
@@ -196,6 +267,14 @@
     <footer>Saved on this device.</footer>
   </section>
 </main>
+
+<aside class="quick" id="quick" aria-label="Quick habits">
+  <div class="q-head">
+    <span class="q-day" id="q-day"></span>
+    <span class="streak" id="q-streak"></span>
+  </div>
+  <div class="q-list" id="q-list"></div>
+</aside>
 
 <dialog id="settings" aria-label="Settings">
   <div class="group">
@@ -256,6 +335,7 @@
   const keyOf = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const fmt = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" });
   const fmtYear = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const fmtShort = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" });
   const habitIds = () => settings.habits.map((h) => h.id);
   const doneOn = (k) => (data[k] || []).filter((id) => habitIds().includes(id));
   const boxCols = () => (settings.habits.length <= 1 ? 1 : settings.habits.length <= 4 ? 2 : 3);
@@ -268,6 +348,41 @@
 
   const yearTotal = (y) =>
     Object.keys(data).filter((k) => k.startsWith(`${y}-`)).reduce((sum, k) => sum + doneOn(k).length, 0);
+
+  // ---------- Streak ----------
+  // Days in a row where all habits are done. Today only counts once it's complete,
+  // but an unfinished today doesn't break the streak.
+  let lastStreak = null;
+
+  function currentStreak() {
+    const total = settings.habits.length;
+    const full = (d) => doneOn(keyOf(d)).length === total;
+    const d = new Date(today);
+    if (!full(d)) d.setDate(d.getDate() - 1);
+    let n = 0;
+    while (full(d) && n < 5000) { n++; d.setDate(d.getDate() - 1); }
+    return n;
+  }
+
+  function fillStreak(node, n, pop) {
+    node.innerHTML = "";
+    const flame = el("span", "fl");
+    flame.textContent = "🔥";
+    flame.setAttribute("aria-hidden", "true");
+    if (pop) flame.classList.add("pop");
+    node.append(flame, ` ${n} day${n === 1 ? "" : "s"}`);
+    node.classList.toggle("out", n === 0);
+    node.title = "Days in a row with all habits done";
+  }
+
+  function renderStreak() {
+    const n = currentStreak();
+    const pop = lastStreak !== null && n > lastStreak;
+    lastStreak = n;
+    fillStreak($("streak"), n, pop);
+    fillStreak($("q-streak"), n, pop);
+    $("streak").hidden = isViewOnly();
+  }
 
   // ---------- Theme ----------
   function isLight(hex) {
@@ -403,14 +518,23 @@
 
   function renderGrid() {
     const g = $("grid");
+    const isThisYear = viewYear === THIS_YEAR;
     g.innerHTML = "";
     g.style.setProperty("--cols", boxCols());
     g.append(el("span"));
-    MONTHS.forEach((m) => { const s = el("span", "mh"); s.textContent = m[0]; s.title = m; g.append(s); });
+    MONTHS.forEach((m, i) => {
+      const s = el("span", "mh");
+      if (isThisYear && i === today.getMonth()) s.classList.add("now");
+      s.textContent = m[0]; s.title = m;
+      g.append(s);
+    });
 
     const totals = Array(12).fill(0);
     for (let d = 1; d <= 31; d++) {
-      const dn = el("span", "dn"); dn.textContent = d; g.append(dn);
+      const dn = el("span", "dn");
+      if (isThisYear && d === today.getDate()) dn.classList.add("now");
+      dn.textContent = d;
+      g.append(dn);
       for (let m = 0; m < 12; m++) {
         const date = new Date(viewYear, m, d);
         if (date.getMonth() !== m) { g.append(el("span", "cell void")); continue; }
@@ -432,7 +556,7 @@
     totals.forEach((t) => { const s = el("span", "tot"); s.textContent = t || ""; g.append(s); });
 
     const names = settings.habits.map((h) => h.label);
-    let tip = "Tap a past day to fix it.";
+    let tip = "Tap a past day to fix it. The 🔥 counts days in a row with all habits done.";
     if (viewYear < THIS_YEAR) tip = "Past years are view only. Tap a day to see it.";
     if (viewYear > THIS_YEAR) tip = "Future years are view only.";
     $("legend").innerHTML = "";
@@ -443,7 +567,38 @@
     );
   }
 
-  function render() { renderDay(); renderGrid(); }
+  // ---------- Quick bar ----------
+  let habitsVisible = true;
+
+  function updateQuick() {
+    const show = !habitsVisible && !isViewOnly() && !!selected;
+    $("quick").classList.toggle("show", show);
+  }
+
+  function renderQuick() {
+    const list = $("q-list");
+    list.innerHTML = "";
+    if (!selected || isViewOnly()) { updateQuick(); return; }
+    const k = keyOf(selected);
+    $("q-day").textContent = k === keyOf(today) ? "Today" : fmtShort.format(selected);
+    settings.habits.forEach((h) => {
+      const b = el("button", "q-item");
+      b.setAttribute("aria-pressed", doneOn(k).includes(h.id));
+      const box = el("span", "q-box"); box.setAttribute("aria-hidden", "true");
+      const label = el("span"); label.textContent = h.label;
+      b.append(box, label);
+      b.addEventListener("click", () => toggle(h.id));
+      list.append(b);
+    });
+    updateQuick();
+  }
+
+  new IntersectionObserver(([entry]) => {
+    habitsVisible = entry.isIntersecting;
+    updateQuick();
+  }).observe($("habits"));
+
+  function render() { renderDay(); renderGrid(); renderStreak(); renderQuick(); }
 
   // ---------- Settings ----------
   function renderHabitList() {
