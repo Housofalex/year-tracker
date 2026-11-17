@@ -2,10 +2,11 @@
 
 A minimalist habit tracker for the whole year. One box per day, no noise.
 
+**Live:** https://housofalex.github.io/year-tracker/
+
 ## Idea
 
-Most habit apps are loud: streaks, badges, notifications.
-Year Tracker is the opposite: black and white, a full-year grid, and an × for every day you show up.
+Most habit apps are loud: streaks, badges, notifications. Year Tracker is the opposite: black and white, a full-year grid, and an × for every day you show up.
 
 ## Features
 
@@ -20,7 +21,7 @@ Year Tracker is the opposite: black and white, a full-year grid, and an × for e
 
 ## How to use
 
-1. Open `Website/index.html` in your browser.
+1. Open the live site, or open `docs/index.html` in your browser.
 2. Tap a habit to mark today as done.
 3. Open Settings to change habits or the theme.
 
