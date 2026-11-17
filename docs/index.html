@@ -31,6 +31,129 @@
   button, input { font: inherit; color: inherit; }
   main { max-width: 720px; margin: 0 auto; padding: 48px 24px 64px; }
 
+  /* Welcome screen */
+  .welcome {
+    position: fixed; inset: 0; z-index: 100;
+    display: grid; place-items: center;
+    background: #0b0302; color: #fff4e8; overflow: hidden;
+    transition: opacity 0.6s ease, visibility 0s linear 0.6s;
+  }
+  .welcome.out { opacity: 0; visibility: hidden; }
+  .welcome::before {
+    content: ""; position: absolute; inset: -25%;
+    background:
+      radial-gradient(40% 35% at 50% 62%, rgba(255, 190, 90, 0.45), transparent 70%),
+      radial-gradient(55% 45% at 50% 72%, rgba(255, 90, 20, 0.6), transparent 70%),
+      radial-gradient(75% 55% at 50% 90%, rgba(170, 20, 0, 0.75), transparent 75%);
+    filter: blur(30px);
+    animation: glow-in 0.9s ease both, flicker 1.4s ease-in-out 0.9s infinite alternate;
+  }
+  .w-inner {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: 22px;
+    text-align: center; padding: 24px;
+  }
+  .w-box {
+    width: 44px; height: 44px; position: relative;
+    border: 1.5px solid #fff4e8;
+    box-shadow: 0 0 24px rgba(255, 120, 40, 0.6);
+    animation: rise 0.5s ease 0.15s both;
+  }
+  .w-box::before, .w-box::after {
+    content: ""; position: absolute; left: 50%; top: 50%;
+    width: 30px; height: 2px; background: #fff4e8;
+  }
+  .w-box::before { transform: translate(-50%, -50%) rotate(45deg) scaleX(0); animation: draw-a 0.25s ease 0.7s forwards; }
+  .w-box::after { transform: translate(-50%, -50%) rotate(-45deg) scaleX(0); animation: draw-b 0.25s ease 0.9s forwards; }
+  .w-slogan {
+    font-size: clamp(40px, 9vw, 88px); font-weight: 300;
+    letter-spacing: -0.03em; line-height: 1;
+    text-shadow: 0 0 30px rgba(255, 120, 40, 0.55), 0 0 80px rgba(255, 60, 0, 0.35);
+    animation: rise 0.6s ease 0.35s both;
+  }
+  .w-name {
+    font-size: 13px; color: rgba(255, 244, 232, 0.6);
+    animation: rise 0.6s ease 0.55s both;
+  }
+
+  /* Day complete celebration */
+  .celebrate {
+    position: fixed; inset: 0; z-index: 90;
+    display: grid; place-items: center; overflow: hidden;
+    background: rgba(11, 3, 2, 0.85); color: #fff4e8; cursor: pointer;
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity 0.4s ease, visibility 0s linear 0.4s;
+  }
+  .celebrate.show {
+    opacity: 1; visibility: visible; pointer-events: auto;
+    transition: opacity 0.15s ease, visibility 0s;
+  }
+  .celebrate::before {
+    content: ""; position: absolute; inset: -25%;
+    background:
+      radial-gradient(30% 28% at 50% 45%, rgba(255, 200, 100, 0.5), transparent 70%),
+      radial-gradient(50% 42% at 50% 52%, rgba(255, 80, 10, 0.55), transparent 70%),
+      radial-gradient(70% 55% at 50% 75%, rgba(170, 20, 0, 0.6), transparent 75%);
+    filter: blur(30px);
+  }
+  .celebrate.show::before { animation: glow-in 0.5s ease both, flicker 0.9s ease-in-out 0.5s infinite alternate; }
+  .c-inner { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px; }
+  .c-flame-wrap { position: relative; display: grid; place-items: center; }
+  .c-flame {
+    font-size: clamp(96px, 22vw, 180px); line-height: 1;
+    filter: drop-shadow(0 0 30px rgba(255, 100, 20, 0.8));
+  }
+  .c-ring {
+    position: absolute; width: 70%; aspect-ratio: 1; border-radius: 50%;
+    border: 2px solid rgba(255, 150, 60, 0.9); opacity: 0;
+  }
+  .c-num {
+    font-size: clamp(64px, 16vw, 128px); font-weight: 400; letter-spacing: -0.04em; line-height: 1;
+    margin-top: 8px; font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 30px rgba(255, 120, 40, 0.6), 0 0 80px rgba(255, 60, 0, 0.4);
+  }
+  .c-label { margin-top: 14px; font-size: 15px; color: rgba(255, 244, 232, 0.7); }
+  .celebrate.show .c-flame { animation: flame-pop 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
+  .celebrate.show .c-ring { animation: ring 0.8s ease-out 0.1s; }
+  .celebrate.show .c-num { animation: num-pop 0.6s cubic-bezier(0.2, 1.8, 0.4, 1) 0.2s both; }
+  .celebrate.show .c-label { animation: rise 0.5s ease 0.45s both; }
+  main.shake { animation: shake 0.4s ease; }
+
+  @keyframes glow-in {
+    from { opacity: 0; transform: translateY(8%) scale(0.92); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes flicker {
+    from { transform: scale(1); opacity: 1; }
+    to { transform: scale(1.05) translateY(-1%); opacity: 0.85; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes draw-a { to { transform: translate(-50%, -50%) rotate(45deg) scaleX(1); } }
+  @keyframes draw-b { to { transform: translate(-50%, -50%) rotate(-45deg) scaleX(1); } }
+  @keyframes flame-pop {
+    0% { transform: scale(0) rotate(-20deg); }
+    60% { transform: scale(1.25) rotate(6deg); }
+    100% { transform: scale(1) rotate(0); }
+  }
+  @keyframes num-pop {
+    from { opacity: 0; transform: scale(0.3); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes ring {
+    0% { opacity: 0.9; transform: scale(0.4); }
+    100% { opacity: 0; transform: scale(2.6); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: none; }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(2px); }
+  }
+
   header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 72px; }
   h1 { font-size: 15px; font-weight: 400; }
   .right { display: flex; gap: 20px; align-items: baseline; }
@@ -233,11 +356,34 @@
     .cell { gap: 1px; padding: 1px; }
     .themes { grid-template-columns: repeat(2, 1fr); }
   }
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+    .w-box::before { transform: translate(-50%, -50%) rotate(45deg); }
+    .w-box::after { transform: translate(-50%, -50%) rotate(-45deg); }
+  }
 </style>
 </head>
 <body>
-<main>
+<div class="welcome" id="welcome" aria-hidden="true">
+  <div class="w-inner">
+    <span class="w-box"></span>
+    <p class="w-slogan">One box a day.</p>
+    <p class="w-name">Year Tracker</p>
+  </div>
+</div>
+
+<div class="celebrate" id="celebrate" aria-live="polite">
+  <div class="c-inner">
+    <span class="c-flame-wrap">
+      <span class="c-ring" aria-hidden="true"></span>
+      <span class="c-flame" aria-hidden="true">🔥</span>
+    </span>
+    <span class="c-num" id="c-num"></span>
+    <span class="c-label" id="c-label"></span>
+  </div>
+</div>
+
+<main id="main">
   <header>
     <h1>Year Tracker</h1>
     <div class="right">
@@ -311,7 +457,9 @@
     { name: "Navy",     bg: "#0a1424", fg: "#e6ecf5" },
   ];
   const MAX_HABITS = 9;
-  const FUTURE_YEARS = 1; // how many years after this year show in the dropdown
+  const FUTURE_YEARS = 1;    // how many years after this year show in the dropdown
+  const WELCOME_MS = 2000;   // how long the welcome screen stays before fading
+  const CELEBRATE_MS = 2000; // how long the day-complete flame stays
   const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   const DATA_KEY = "year-tracker-v1";
   const SETTINGS_KEY = "year-tracker-settings-v1";
@@ -338,6 +486,7 @@
   const fmtShort = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" });
   const habitIds = () => settings.habits.map((h) => h.id);
   const doneOn = (k) => (data[k] || []).filter((id) => habitIds().includes(id));
+  const isFull = (k) => doneOn(k).length === settings.habits.length;
   const boxCols = () => (settings.habits.length <= 1 ? 1 : settings.habits.length <= 4 ? 2 : 3);
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -349,18 +498,27 @@
   const yearTotal = (y) =>
     Object.keys(data).filter((k) => k.startsWith(`${y}-`)).reduce((sum, k) => sum + doneOn(k).length, 0);
 
+  // ---------- Welcome ----------
+  function showWelcome() {
+    const w = $("welcome");
+    document.documentElement.style.overflow = "hidden";
+    setTimeout(() => {
+      w.classList.add("out");
+      document.documentElement.style.overflow = "";
+      setTimeout(() => w.remove(), 700);
+    }, WELCOME_MS);
+  }
+
   // ---------- Streak ----------
   // Days in a row where all habits are done. Today only counts once it's complete,
   // but an unfinished today doesn't break the streak.
   let lastStreak = null;
 
   function currentStreak() {
-    const total = settings.habits.length;
-    const full = (d) => doneOn(keyOf(d)).length === total;
     const d = new Date(today);
-    if (!full(d)) d.setDate(d.getDate() - 1);
+    if (!isFull(keyOf(d))) d.setDate(d.getDate() - 1);
     let n = 0;
-    while (full(d) && n < 5000) { n++; d.setDate(d.getDate() - 1); }
+    while (isFull(keyOf(d)) && n < 5000) { n++; d.setDate(d.getDate() - 1); }
     return n;
   }
 
@@ -383,6 +541,33 @@
     fillStreak($("q-streak"), n, pop);
     $("streak").hidden = isViewOnly();
   }
+
+  // ---------- Day complete celebration ----------
+  let celebrateTimer = null;
+
+  function celebrate(n) {
+    const c = $("celebrate");
+    $("c-num").textContent = n;
+    $("c-label").textContent = n === 1 ? "day in a row. Keep it lit." : "days in a row. Keep it lit.";
+    c.classList.remove("show");
+    void c.offsetWidth; // restart the animations
+    c.classList.add("show");
+
+    const main = $("main");
+    main.classList.remove("shake");
+    void main.offsetWidth;
+    main.classList.add("shake");
+
+    if (navigator.vibrate) navigator.vibrate([30, 40, 70]);
+
+    clearTimeout(celebrateTimer);
+    celebrateTimer = setTimeout(() => c.classList.remove("show"), CELEBRATE_MS);
+  }
+
+  $("celebrate").addEventListener("click", () => {
+    clearTimeout(celebrateTimer);
+    $("celebrate").classList.remove("show");
+  });
 
   // ---------- Theme ----------
   function isLight(hex) {
@@ -473,11 +658,17 @@
   function toggle(id) {
     if (isViewOnly() || !selected) return;
     const k = keyOf(selected);
+    const isToday = k === keyOf(today);
+    const wasFull = isFull(k);
+
     const set = new Set(data[k] || []);
     set.has(id) ? set.delete(id) : set.add(id);
     if (set.size) data[k] = [...set]; else delete data[k];
     saveData();
     render();
+
+    // Big flame only when today just became complete
+    if (isToday && !wasFull && isFull(k)) celebrate(currentStreak());
   }
 
   function renderDay() {
@@ -653,6 +844,7 @@
   $("back").addEventListener("click", goToToday);
 
   // ---------- Start ----------
+  showWelcome();
   renderYears();
   applyTheme();
   render();
