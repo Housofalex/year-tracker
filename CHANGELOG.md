@@ -3,7 +3,9 @@
 ## 2026-11-17
 
 - Moved the site from `Website` to `docs` for GitHub Pages
+- Website is now live on GitHub Pages
 - Added live website link to README
+- Added year switch dropdown (past and future years are view only)
 
 ## 2026-11-15
 

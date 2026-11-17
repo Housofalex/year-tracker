@@ -14,6 +14,7 @@ Most habit apps are loud: streaks, badges, notifications. Year Tracker is the op
 - Track up to 9 habits per day (default: Trading, Reading, Workout, Study)
 - Rename, add or remove habits in Settings (renaming keeps your history)
 - Tap a past day to fix it
+- Switch years with the dropdown (past and future years are view only)
 - Impossible days (like Feb 30) are hidden
 - Monthly totals under each month
 - 4 themes (Black, White, Graphite, Navy) or your own colors
@@ -23,7 +24,8 @@ Most habit apps are loud: streaks, badges, notifications. Year Tracker is the op
 
 1. Open the live site, or open `docs/index.html` in your browser.
 2. Tap a habit to mark today as done.
-3. Open Settings to change habits or the theme.
+3. Click the year at the top to look at other years.
+4. Open Settings to change habits or the theme.
 
 ## Status
 
@@ -34,4 +36,5 @@ Most habit apps are loud: streaks, badges, notifications. Year Tracker is the op
 - [x] Custom habits
 - [x] Save progress
 - [x] Themes
+- [x] Year switch
 - [ ] Mobile app version
