@@ -32,12 +32,48 @@
   main { max-width: 720px; margin: 0 auto; padding: 48px 24px 64px; }
 
   header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 72px; }
-  h1, .year { font-size: 15px; font-weight: 400; }
+  h1 { font-size: 15px; font-weight: 400; }
   .right { display: flex; gap: 20px; align-items: baseline; }
-  .year { color: var(--dim); font-variant-numeric: tabular-nums; }
   .link { background: none; border: 0; cursor: pointer; font-size: 15px; color: var(--dim); }
   .link:hover { color: var(--fg); }
   .link:disabled { opacity: 0.35; cursor: default; }
+
+  /* Year dropdown */
+  .year-pick { position: relative; }
+  .year-btn {
+    background: none; border: 0; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 15px; font-weight: 400; color: var(--dim); font-variant-numeric: tabular-nums;
+    transition: color 0.2s ease;
+  }
+  .year-btn:hover, .year-btn[aria-expanded="true"] { color: var(--fg); }
+  .chev {
+    width: 6px; height: 6px;
+    border-right: 1px solid currentColor; border-bottom: 1px solid currentColor;
+    transform: translateY(-2px) rotate(45deg);
+    transition: transform 0.25s ease;
+  }
+  .year-btn[aria-expanded="true"] .chev { transform: translateY(1px) rotate(-135deg); }
+  .year-menu {
+    position: absolute; top: calc(100% + 12px); right: -10px; z-index: 10;
+    min-width: 96px; padding: 6px;
+    display: flex; flex-direction: column;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 2px;
+    opacity: 0; visibility: hidden; transform: translateY(-6px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
+  }
+  .year-menu.open {
+    opacity: 1; visibility: visible; transform: translateY(0);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s;
+  }
+  .year-opt {
+    background: none; border: 0; cursor: pointer; text-align: left;
+    padding: 8px 10px; font-size: 14px; color: var(--dim); border-radius: 1px;
+    font-variant-numeric: tabular-nums;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .year-opt:hover, .year-opt:focus-visible { color: var(--fg); background: var(--faint); outline: none; }
+  .year-opt[aria-selected="true"] { color: var(--fg); }
 
   .date { font-size: clamp(32px, 7vw, 48px); font-weight: 300; letter-spacing: -0.02em; line-height: 1.1; }
   .sub { display: flex; gap: 16px; align-items: baseline; color: var(--dim); font-size: 14px; margin-top: 10px; }
@@ -51,6 +87,8 @@
     transition: border-color 0.2s; overflow-wrap: anywhere;
   }
   .habit:hover { border-color: var(--dim); }
+  .habit:disabled { cursor: default; }
+  .habit:disabled:hover { border-color: var(--line); }
   .box { width: 22px; height: 22px; border: 1px solid var(--dim); position: relative; }
   .habit[aria-pressed="true"] .box { background: var(--fg); border-color: var(--fg); }
   .habit[aria-pressed="true"] .box::before,
@@ -136,7 +174,12 @@
   <header>
     <h1>Year Tracker</h1>
     <div class="right">
-      <span class="year" id="year"></span>
+      <div class="year-pick" id="year-pick">
+        <button class="year-btn" id="year-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Choose year">
+          <span id="year-label"></span><span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="year-menu" id="year-menu" role="listbox" aria-label="Year"></div>
+      </div>
       <button class="link" id="open-settings">Settings</button>
     </div>
   </header>
@@ -189,6 +232,7 @@
     { name: "Navy",     bg: "#0a1424", fg: "#e6ecf5" },
   ];
   const MAX_HABITS = 9;
+  const FUTURE_YEARS = 1; // how many years after this year show in the dropdown
   const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   const DATA_KEY = "year-tracker-v1";
   const SETTINGS_KEY = "year-tracker-settings-v1";
@@ -211,13 +255,19 @@
   const el = (tag, cls) => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
   const keyOf = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const fmt = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" });
+  const fmtYear = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const habitIds = () => settings.habits.map((h) => h.id);
   const doneOn = (k) => (data[k] || []).filter((id) => habitIds().includes(id));
   const boxCols = () => (settings.habits.length <= 1 ? 1 : settings.habits.length <= 4 ? 2 : 3);
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const YEAR = today.getFullYear();
-  let selected = new Date(today);
+  const THIS_YEAR = today.getFullYear();
+  let viewYear = THIS_YEAR;
+  let selected = new Date(today); // null when viewing another year and no day is picked
+  const isViewOnly = () => viewYear !== THIS_YEAR;
+
+  const yearTotal = (y) =>
+    Object.keys(data).filter((k) => k.startsWith(`${y}-`)).reduce((sum, k) => sum + doneOn(k).length, 0);
 
   // ---------- Theme ----------
   function isLight(hex) {
@@ -239,8 +289,74 @@
     renderThemes();
   }
 
+  // ---------- Year dropdown ----------
+  const yearBtn = $("year-btn");
+  const yearMenu = $("year-menu");
+  const yearOptions = () => [...yearMenu.querySelectorAll(".year-opt")];
+
+  function renderYears() {
+    const dataYears = Object.keys(data).map((k) => Number(k.slice(0, 4))).filter(Number.isFinite);
+    const first = Math.min(THIS_YEAR, ...dataYears);
+    const last = THIS_YEAR + FUTURE_YEARS;
+    yearMenu.innerHTML = "";
+    for (let y = first; y <= last; y++) {
+      const o = el("button", "year-opt");
+      o.type = "button";
+      o.setAttribute("role", "option");
+      o.setAttribute("aria-selected", y === viewYear);
+      o.tabIndex = -1;
+      o.textContent = y;
+      o.addEventListener("click", () => pickYear(y));
+      yearMenu.append(o);
+    }
+    $("year-label").textContent = viewYear;
+  }
+
+  function openYears() {
+    yearMenu.classList.add("open");
+    yearBtn.setAttribute("aria-expanded", "true");
+    const current = yearOptions().find((o) => o.getAttribute("aria-selected") === "true");
+    if (current) current.focus({ preventScroll: true });
+  }
+
+  function closeYears(focusButton) {
+    yearMenu.classList.remove("open");
+    yearBtn.setAttribute("aria-expanded", "false");
+    if (focusButton) yearBtn.focus({ preventScroll: true });
+  }
+
+  function pickYear(y) {
+    viewYear = y;
+    selected = y === THIS_YEAR ? new Date(today) : null;
+    closeYears(true);
+    renderYears();
+    render();
+  }
+
+  function goToToday() {
+    viewYear = THIS_YEAR;
+    selected = new Date(today);
+    renderYears();
+    render();
+  }
+
+  yearBtn.addEventListener("click", () => {
+    yearMenu.classList.contains("open") ? closeYears(false) : openYears();
+  });
+  yearMenu.addEventListener("keydown", (e) => {
+    const opts = yearOptions();
+    const i = opts.indexOf(document.activeElement);
+    if (e.key === "ArrowDown") { e.preventDefault(); opts[Math.min(i + 1, opts.length - 1)].focus(); }
+    if (e.key === "ArrowUp") { e.preventDefault(); opts[Math.max(i - 1, 0)].focus(); }
+    if (e.key === "Escape" || e.key === "Tab") closeYears(e.key === "Escape");
+  });
+  document.addEventListener("click", (e) => {
+    if (!$("year-pick").contains(e.target)) closeYears(false);
+  });
+
   // ---------- Tracker ----------
   function toggle(id) {
+    if (isViewOnly() || !selected) return;
     const k = keyOf(selected);
     const set = new Set(data[k] || []);
     set.has(id) ? set.delete(id) : set.add(id);
@@ -250,19 +366,33 @@
   }
 
   function renderDay() {
+    const viewOnly = isViewOnly();
+    const total = settings.habits.length;
+    const wrap = $("habits");
+    wrap.innerHTML = "";
+
+    // Another year, no day picked yet: show the year overview
+    if (!selected) {
+      $("date").textContent = viewYear;
+      $("count").textContent = viewYear > THIS_YEAR
+        ? "View only. This year hasn't started yet."
+        : `View only. ${yearTotal(viewYear)} habits done this year.`;
+      $("back").hidden = false;
+      return;
+    }
+
     const k = keyOf(selected);
     const isToday = k === keyOf(today);
     const n = doneOn(k).length;
-    const total = settings.habits.length;
-    $("date").textContent = isToday ? "Today" : fmt.format(selected);
-    $("count").textContent = isToday ? `${fmt.format(selected)}, ${n} of ${total} done` : `${n} of ${total} done`;
+    $("date").textContent = isToday ? "Today" : (viewOnly ? fmtYear : fmt).format(selected);
+    if (isToday) $("count").textContent = `${fmt.format(selected)}, ${n} of ${total} done`;
+    else $("count").textContent = viewOnly ? `View only. ${n} of ${total} done.` : `${n} of ${total} done`;
     $("back").hidden = isToday;
 
-    const wrap = $("habits");
-    wrap.innerHTML = "";
     settings.habits.forEach((h) => {
       const b = el("button", "habit");
       b.setAttribute("aria-pressed", doneOn(k).includes(h.id));
+      b.disabled = viewOnly;
       const box = el("span", "box"); box.setAttribute("aria-hidden", "true");
       const label = el("span"); label.textContent = h.label;
       b.append(box, label);
@@ -282,7 +412,7 @@
     for (let d = 1; d <= 31; d++) {
       const dn = el("span", "dn"); dn.textContent = d; g.append(dn);
       for (let m = 0; m < 12; m++) {
-        const date = new Date(YEAR, m, d);
+        const date = new Date(viewYear, m, d);
         if (date.getMonth() !== m) { g.append(el("span", "cell void")); continue; }
         const k = keyOf(date);
         const done = doneOn(k);
@@ -291,8 +421,8 @@
         const b = el("button", "cell");
         if (date > today) { b.classList.add("future"); b.disabled = true; }
         if (k === keyOf(today)) b.classList.add("today");
-        if (k === keyOf(selected)) b.classList.add("sel");
-        b.setAttribute("aria-label", `${fmt.format(date)}, ${done.length} of ${settings.habits.length} done`);
+        if (selected && k === keyOf(selected)) b.classList.add("sel");
+        b.setAttribute("aria-label", `${fmtYear.format(date)}, ${done.length} of ${settings.habits.length} done`);
         settings.habits.forEach((h) => b.append(el("span", done.includes(h.id) ? "on" : "")));
         b.addEventListener("click", () => { selected = date; render(); window.scrollTo({ top: 0, behavior: "smooth" }); });
         g.append(b);
@@ -302,11 +432,14 @@
     totals.forEach((t) => { const s = el("span", "tot"); s.textContent = t || ""; g.append(s); });
 
     const names = settings.habits.map((h) => h.label);
+    let tip = "Tap a past day to fix it.";
+    if (viewYear < THIS_YEAR) tip = "Past years are view only. Tap a day to see it.";
+    if (viewYear > THIS_YEAR) tip = "Future years are view only.";
     $("legend").innerHTML = "";
     $("legend").append(
       `One box per habit, left to right: ${names.join(", ")}.`,
       el("br"),
-      "Tap a past day to fix it."
+      tip
     );
   }
 
@@ -362,10 +495,10 @@
   $("reset-theme").addEventListener("click", () => setTheme(THEMES[0].bg, THEMES[0].fg));
   $("open-settings").addEventListener("click", () => { renderHabitList(); renderThemes(); $("settings").showModal(); });
   $("close-settings").addEventListener("click", () => $("settings").close());
-  $("back").addEventListener("click", () => { selected = new Date(today); render(); });
+  $("back").addEventListener("click", goToToday);
 
   // ---------- Start ----------
-  $("year").textContent = YEAR;
+  renderYears();
   applyTheme();
   render();
 </script>
