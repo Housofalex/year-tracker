@@ -10,6 +10,8 @@
 - Added quick bar to tick habits while scrolling
 - Today is now highlighted more clearly in the grid
 - Added slogan "One box a day." to README
+- Added welcome screen with the slogan
+- Added big flame celebration when all habits for today are done
 
 ## 2026-11-15
 

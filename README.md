@@ -12,12 +12,14 @@ Most habit apps are loud: badges, notifications, endless pop-ups. Year Tracker k
 
 ## Features
 
+- Welcome screen with the slogan when you open the site
 - Full-year view: 12 months × 31 days
 - Track up to 9 habits per day (default: Trading, Reading, Workout, Study)
 - Rename, add or remove habits in Settings (renaming keeps your history)
 - Tap a past day to fix it
 - Today is highlighted in the grid
 - Streak 🔥: days in a row with all habits done
+- Big flame celebration when you finish all habits for today
 - Quick bar: tick habits while scrolling (side panel on wide screens, top bar on phones)
 - Switch years with the dropdown (past and future years are view only)
 - Impossible days (like Feb 30) are hidden
@@ -44,7 +46,8 @@ Most habit apps are loud: badges, notifications, endless pop-ups. Year Tracker k
 - [x] Year switch
 - [x] Streak
 - [x] Quick bar
+- [x] Welcome screen
+- [x] Day complete celebration
 - [ ] More themes and vibes
 - [ ] Custom flame (color and icon)
-- [ ] Welcome screen
 - [ ] Mobile app version
