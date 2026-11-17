@@ -6,7 +6,7 @@ A minimalist habit tracker for the whole year. One box per day, no noise.
 
 ## Idea
 
-Most habit apps are loud: streaks, badges, notifications. Year Tracker is the opposite: black and white, a full-year grid, and an × for every day you show up.
+Most habit apps are loud: badges, notifications, endless pop-ups. Year Tracker keeps it calm: a full-year grid, an × for every day you show up, and one small flame for your streak.
 
 ## Features
 
@@ -14,6 +14,9 @@ Most habit apps are loud: streaks, badges, notifications. Year Tracker is the op
 - Track up to 9 habits per day (default: Trading, Reading, Workout, Study)
 - Rename, add or remove habits in Settings (renaming keeps your history)
 - Tap a past day to fix it
+- Today is highlighted in the grid
+- Streak 🔥: days in a row with all habits done
+- Quick bar: tick habits while scrolling (side panel on wide screens, top bar on phones)
 - Switch years with the dropdown (past and future years are view only)
 - Impossible days (like Feb 30) are hidden
 - Monthly totals under each month
@@ -37,4 +40,9 @@ Most habit apps are loud: streaks, badges, notifications. Year Tracker is the op
 - [x] Save progress
 - [x] Themes
 - [x] Year switch
+- [x] Streak
+- [x] Quick bar
+- [ ] More themes and vibes
+- [ ] Custom flame (color and icon)
+- [ ] Welcome screen
 - [ ] Mobile app version

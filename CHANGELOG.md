@@ -6,6 +6,9 @@
 - Website is now live on GitHub Pages
 - Added live website link to README
 - Added year switch dropdown (past and future years are view only)
+- Added streak with flame (days in a row with all habits done)
+- Added quick bar to tick habits while scrolling
+- Today is now highlighted more clearly in the grid
 
 ## 2026-11-15
 
