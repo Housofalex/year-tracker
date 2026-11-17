@@ -1,6 +1,8 @@
 # Year Tracker
 
-A minimalist habit tracker for the whole year. One box per day, no noise.
+**One box a day.**
+
+A minimalist habit tracker for the whole year. No noise.
 
 **Live:** https://housofalex.github.io/year-tracker/
 

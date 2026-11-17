@@ -9,6 +9,7 @@
 - Added streak with flame (days in a row with all habits done)
 - Added quick bar to tick habits while scrolling
 - Today is now highlighted more clearly in the grid
+- Added slogan "One box a day." to README
 
 ## 2026-11-15
 
