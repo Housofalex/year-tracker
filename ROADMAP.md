@@ -17,4 +17,5 @@ Planned features for Year Tracker.
 - [ ] Install on phone (PWA)
 
 ## Later
-- [ ] Custom domain
+- [ ] App 
+- [ ] Custom Domain
