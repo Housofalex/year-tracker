@@ -19,3 +19,4 @@ Planned features for Year Tracker.
 ## Later
 - [ ] App 
 - [ ] Custom Domain
+- [ ] Other
